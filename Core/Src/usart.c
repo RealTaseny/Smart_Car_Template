@@ -21,7 +21,10 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+#include <unistd.h>
+uint8_t rx_data;
+uint8_t rx_buffer[UART_BUFFER_SIZE];
+uint16_t rx_buffer_index;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -192,5 +195,16 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+int _write(int file, char *ptr, int len) {
+  (void)file;
 
+#ifdef USE_DBG_UART
+  HAL_UART_Transmit(&huart1, (const uint8_t *)ptr, len, HAL_MAX_DELAY);
+#endif
+
+#ifdef USE_WIRELESS_UART
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ptr, len, HAL_MAX_DELAY);
+#endif
+  return len;
+}
 /* USER CODE END 1 */

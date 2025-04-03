@@ -65,9 +65,9 @@ uint8_t FATFS_LinkDriverEx(const Diskio_drvTypeDef *drv, char *path, uint8_t lun
   * @param  path: pointer to the logical drive path
   * @retval Returns 0 in case of success, otherwise 1.
   */
-uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path)
+uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path, uint8_t lun)
 {
-  return FATFS_LinkDriverEx(drv, path, 0);
+  return FATFS_LinkDriverEx(drv, path, lun);
 }
 
 /**

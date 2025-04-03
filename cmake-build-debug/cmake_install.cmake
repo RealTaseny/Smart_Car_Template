@@ -1,4 +1,4 @@
-# Install script for directory: G:/STM32_Projects/Smart_Cat_Template
+# Install script for directory: G:/STM32_Projects/Smart_Car_Template
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,32 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("G:/STM32_Projects/Smart_Cat_Template/cmake-build-debug/cmake/stm32cubemx/cmake_install.cmake")
+  include("G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/cmake/stm32cubemx/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/Application/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/Smart_Car_Drivers/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/vofa/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/ymodem/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/zf_libraries/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -57,6 +82,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-  file(WRITE "G:/STM32_Projects/Smart_Cat_Template/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "G:/STM32_Projects/Smart_Car_Template/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

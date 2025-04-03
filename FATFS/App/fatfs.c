@@ -15,6 +15,8 @@
   *
   ******************************************************************************
   */
+#include <stdio.h>
+#include <string.h>
 /* USER CODE END Header */
 #include "fatfs.h"
 
@@ -24,29 +26,62 @@ FATFS USERFatFS;    /* File system object for USER logical drive */
 FIL USERFile;       /* File object for USER */
 
 /* USER CODE BEGIN Variables */
+FRESULT scan_files (char* path)
+{
+  FRESULT res;
+  DIR dir;
+  UINT i;
+  static FILINFO fno;
+  static uint8_t layerDeeph=0;
+  uint8_t j;
 
+
+  res = f_opendir(&dir, path);
+  if (res == FR_OK)
+  {
+    layerDeeph+=4;
+    for (;;)
+    {
+      res = f_readdir(&dir, &fno);
+      if (res != FR_OK || fno.fname[0] == 0)
+        break;
+      if (fno.fattrib & AM_DIR)
+      {
+        i = strlen(path);
+        sprintf(&path[i], "/%s", fno.fname);
+        for(j=0;j<layerDeeph;j++)
+          printf(" ");
+        printf("%s%s%s%s%s%s\r\n", "\033[","33;","22m",fno.fname,"  <DIR>","\033[0m");
+        res = scan_files(path);
+        if (res != FR_OK) break;
+        path[i] = 0;
+      }
+      else
+      {
+        for(j=0;j<layerDeeph;j++)
+          printf(" ");
+        printf("%s%s%s%s%s\r\n","\033[","32;","22m",fno.fname,"\033[0m");
+      }
+    }
+    f_closedir(&dir);
+    layerDeeph-=4;
+  }
+
+  return res;
+}
 /* USER CODE END Variables */
 
 void MX_FATFS_Init(void)
 {
   /*## FatFS: Link the USER driver ###########################*/
-  retUSER = FATFS_LinkDriver(&USER_Driver, USERPath);
+  retUSER = FATFS_LinkDriver(&USER_Driver, USERPath, 0);
+  retUSER = FATFS_LinkDriver(&USER_Driver, USERPath, 1);
 
   /* USER CODE BEGIN Init */
-  /* additional user code for init */
+  retUSER = f_mount(&USERFatFS,  "FLASH:",  1);   //挂载文件系统
+  printf("%d\r\n", retUSER);
+  scan_files("FLASH:");
   /* USER CODE END Init */
-}
-
-/**
-  * @brief  Gets Time from RTC
-  * @param  None
-  * @retval Time in DWORD
-  */
-DWORD get_fattime(void)
-{
-  /* USER CODE BEGIN get_fattime */
-  return 0;
-  /* USER CODE END get_fattime */
 }
 
 /* USER CODE BEGIN Application */

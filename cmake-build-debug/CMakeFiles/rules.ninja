@@ -35,7 +35,7 @@ rule C_COMPILER__Smart_Car_Template_unscanned_Debug
 # Rule for linking C executable.
 
 rule C_EXECUTABLE_LINKER__Smart_Car_Template_Debug
-  command = C:\Windows\system32\cmd.exe /C "$PRE_LINK && D:\ARMGNU~1\14EFD8~1.2RE\bin\AR19DD~1.EXE $FLAGS -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard  -T "G:/STM32_Projects/Smart_Cat_Template/STM32F411XX_FLASH.ld" --specs=nano.specs -Wl,-Map=Smart_Car_Template.map -Wl,--gc-sections -Wl,--start-group -lc -lm -Wl,--end-group -Wl,--print-memory-usage $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
+  command = C:\Windows\system32\cmd.exe /C "$PRE_LINK && D:\ARMGNU~1\14EFD8~1.2RE\bin\AR19DD~1.EXE $FLAGS -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard  -T "G:/STM32_Projects/Smart_Car_Template/STM32F411XX_FLASH.ld" --specs=nano.specs -Wl,-Map=Smart_Car_Template.map -Wl,--gc-sections -Wl,--start-group -lc -lm -Wl,--end-group -Wl,--print-memory-usage $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
   description = Linking C executable $TARGET_FILE
   restat = $RESTAT
 
@@ -82,7 +82,7 @@ rule C_COMPILER__FatFs_unscanned_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "D:\JetBrains\CLion 2024.3.3\bin\cmake\win\x64\bin\cmake.exe" --regenerate-during-build -SG:\STM32_Projects\Smart_Cat_Template -BG:\STM32_Projects\Smart_Cat_Template\cmake-build-debug
+  command = "D:\JetBrains\CLion 2024.3.3\bin\cmake\win\x64\bin\cmake.exe" --regenerate-during-build -SG:\STM32_Projects\Smart_Car_Template -BG:\STM32_Projects\Smart_Car_Template\cmake-build-debug
   description = Re-running CMake...
   generator = 1
 

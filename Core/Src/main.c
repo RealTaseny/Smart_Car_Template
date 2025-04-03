@@ -29,7 +29,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ff.h"
+#include "Peripheral_Init.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,9 +106,10 @@ int main(void)
   MX_TIM5_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
-  MX_FATFS_Init();
-  /* USER CODE BEGIN 2 */
 
+  /* USER CODE BEGIN 2 */
+  Peripheral_Init();
+  MX_FATFS_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */

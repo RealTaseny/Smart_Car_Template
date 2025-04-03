@@ -1,4 +1,4 @@
-# Install script for directory: G:/STM32_Projects/Smart_Cat_Template/cmake/stm32cubemx
+# Install script for directory: G:/STM32_Projects/Smart_Car_Template/cmake/stm32cubemx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

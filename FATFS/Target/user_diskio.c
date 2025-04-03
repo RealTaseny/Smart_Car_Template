@@ -38,7 +38,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-
+#include "w25qxx_flash.h"
+#include <stdio.h>
+#define SD_CARD 0
+#define SPI_FLASH 1
 /* Private variables ---------------------------------------------------------*/
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
@@ -82,6 +85,16 @@ DSTATUS USER_initialize (
 {
   /* USER CODE BEGIN INIT */
     Stat = STA_NOINIT;
+  switch (pdrv) {
+  case SD_CARD:
+
+    return STA_NOINIT;
+
+  case SPI_FLASH:
+    w25qxx_flash_init();
+    Stat = USER_status(SPI_FLASH);
+    return Stat;
+  }
     return Stat;
   /* USER CODE END INIT */
 }
@@ -97,6 +110,18 @@ DSTATUS USER_status (
 {
   /* USER CODE BEGIN STATUS */
     Stat = STA_NOINIT;
+  switch (pdrv) {
+  case SD_CARD:
+
+    return STA_NOINIT;
+
+  case SPI_FLASH:
+    if ((w25qxx_flash_read_ID() & 0XEF00) == 0XEF00)
+      Stat = 0;
+    else
+      Stat = STA_NOINIT;
+    return Stat;
+  }
     return Stat;
   /* USER CODE END STATUS */
 }
@@ -117,7 +142,18 @@ DRESULT USER_read (
 )
 {
   /* USER CODE BEGIN READ */
-    return RES_OK;
+  DRESULT res;
+  switch (pdrv) {
+  case SD_CARD:
+
+    return RES_NOTRDY;
+
+  case SPI_FLASH:
+    w25qxx_flash_read(buff, sector * 4096, count * 4096);
+    res = RES_OK;
+    return res;
+  }
+    return RES_PARERR;
   /* USER CODE END READ */
 }
 
@@ -139,7 +175,21 @@ DRESULT USER_write (
 {
   /* USER CODE BEGIN WRITE */
   /* USER CODE HERE */
-    return RES_OK;
+  DRESULT res;
+
+  switch (pdrv) {
+  case SD_CARD:
+
+    return RES_NOTRDY;
+
+  case SPI_FLASH:
+    w25qxx_flash_write((uint8_t *)buff, sector * 4096, count * 4096);
+    res = RES_OK;
+
+    return res;
+  }
+
+  return RES_ERROR;
   /* USER CODE END WRITE */
 }
 #endif /* _USE_WRITE == 1 */
@@ -159,8 +209,35 @@ DRESULT USER_ioctl (
 )
 {
   /* USER CODE BEGIN IOCTL */
-    DRESULT res = RES_ERROR;
+  DRESULT res;
+
+  switch (pdrv) {
+  case SD_CARD:
+
+    return RES_NOTRDY;
+
+  case SPI_FLASH:
+
+    switch (cmd)
+    {
+  case GET_SECTOR_COUNT:
+    *(DWORD *)buff = w25qxx_flash_read_capacity();
+      break;
+
+  case GET_SECTOR_SIZE:
+    *(WORD *)buff = 4096;
+      break;
+
+  case GET_BLOCK_SIZE:
+    *(WORD *)buff = 1;
+      break;
+    }
+
+    res = RES_OK;
     return res;
+  }
+
+  return RES_ERROR;
   /* USER CODE END IOCTL */
 }
 #endif /* _USE_IOCTL == 1 */
