@@ -79,8 +79,17 @@ void MX_FATFS_Init(void)
 
   /* USER CODE BEGIN Init */
   retUSER = f_mount(&USERFatFS,  "FLASH:",  1);   //挂载文件系统
-  printf("%d\r\n", retUSER);
-  scan_files("FLASH:");
+  while (retUSER == FR_NO_FILESYSTEM)
+  {
+    printf("没有文件系统，正在格式化挂载设备SPI Flash...\r\n");
+    retUSER = f_mkfs("FLASH:", FM_FAT, _MAX_SS, work, sizeof(work));
+    printf("操作完成，返回码：%d\r\n", retUSER);
+    printf("创建成功，正在尝试挂载设备SPI Flash\r\n");
+    retUSER = f_mount(&USERFatFS, "FLASH:", 1);
+    printf("操作完成，返回码：%d\r\n", retUSER);
+    break;
+  }
+  //scan_files("FLASH:");
   /* USER CODE END Init */
 }
 
