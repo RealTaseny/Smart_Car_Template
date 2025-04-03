@@ -42,6 +42,10 @@
 #include <stdio.h>
 #define SD_CARD 0
 #define SPI_FLASH 1
+
+#define W25Q128_SECTOR_COUNT 16
+#define W25Q128_SECTOR_SIZE 4096
+#define W25Q128_BLOCK_SIZE 256
 /* Private variables ---------------------------------------------------------*/
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
