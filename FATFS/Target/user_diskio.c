@@ -43,7 +43,10 @@
 #define SD_CARD 0
 #define SPI_FLASH 1
 
-#define W25Q128_SECTOR_COUNT 16
+/**
+ * 对于SPI Flash而言， Fatfs需要设置正确的扇区大小与Block Size才能正常使用f_mkfs()函数
+ */
+#define W25Q128_SECTOR_COUNT 4096
 #define W25Q128_SECTOR_SIZE 4096
 #define W25Q128_BLOCK_SIZE 256
 /* Private variables ---------------------------------------------------------*/
