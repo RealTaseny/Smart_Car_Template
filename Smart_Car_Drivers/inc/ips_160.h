@@ -6,6 +6,7 @@
 #include "gpio.h"
 #include "zf_common_function.h"
 #include "font.h"
+#include "fatfs.h"
 
 #define IPS160_SPI_PORT (&hspi2)
 
