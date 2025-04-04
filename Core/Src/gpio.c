@@ -39,7 +39,7 @@
         * EVENT_OUT
         * EXTI
 */
-void MX_GPIO_Init(void)
+void system_gpio_init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -57,11 +57,13 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, CCD_CLK_Pin|CCD_SI_Pin|LCD_RES_Pin|LCD_DC_Pin
-                          |GYRO_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, CCD_CLK_Pin|CCD_SI_Pin|LCD_RES_Pin|LCD_DC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, MOTOR_R_DIR_Pin|MOTOR_L_DIR_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GYRO_CS_GPIO_Port, GYRO_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : MAG_Pin RUN_SWITCH_Pin */
   GPIO_InitStruct.Pin = MAG_Pin|RUN_SWITCH_Pin;

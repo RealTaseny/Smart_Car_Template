@@ -7,7 +7,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "stm32f4xx_hal.h"
 #include "usart.h"
 #include "vofa.h"
 #include "ymodem.h"

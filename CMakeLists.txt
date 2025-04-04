@@ -41,8 +41,8 @@ add_executable(${CMAKE_PROJECT_NAME})
 add_subdirectory(cmake/stm32cubemx)
 add_subdirectory(Application)
 add_subdirectory(Smart_Car_Drivers)
-add_subdirectory(vofa)
 add_subdirectory(ymodem)
+add_subdirectory(vofa)
 add_subdirectory(zf_libraries)
 
 # Link directories setup

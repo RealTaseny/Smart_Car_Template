@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "ff.h"
+#include "fatfs.h"
 
 #define SOH  0x01  // 128-byte data packet
 #define STX  0x02  // 1024-byte data packet

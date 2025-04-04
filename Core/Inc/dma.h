@@ -38,7 +38,7 @@ extern "C" {
 
 /* USER CODE END Private defines */
 
-void MX_DMA_Init(void);
+void system_dma_init(void);
 
 /* USER CODE BEGIN Prototypes */
 

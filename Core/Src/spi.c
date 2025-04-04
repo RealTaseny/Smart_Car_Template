@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -29,7 +29,7 @@ SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_tx;
 
 /* SPI1 init function */
-void MX_SPI1_Init(void)
+void system_spi1_init(void)
 {
 
   /* USER CODE BEGIN SPI1_Init 0 */
@@ -61,7 +61,7 @@ void MX_SPI1_Init(void)
 
 }
 /* SPI2 init function */
-void MX_SPI2_Init(void)
+void system_spi2_init(void)
 {
 
   /* USER CODE BEGIN SPI2_Init 0 */
@@ -78,7 +78,7 @@ void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -136,7 +136,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     PB12     ------> SPI2_NSS
     PB15     ------> SPI2_MOSI
     */
-    GPIO_InitStruct.Pin = LCD_SCK_Pin|LCD_CS_Pin|LCD_SDA_Pin;
+    GPIO_InitStruct.Pin = LCD_SCK_Pin|GPIO_PIN_12|LCD_SDA_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -153,9 +153,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     hdma_spi2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_spi2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_spi2_tx.Init.Mode = DMA_NORMAL;
-    hdma_spi2_tx.Init.Priority = DMA_PRIORITY_MEDIUM;
+    hdma_spi2_tx.Init.Priority = DMA_PRIORITY_LOW;
     hdma_spi2_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-    hdma_spi2_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+    hdma_spi2_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
     hdma_spi2_tx.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_spi2_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
     if (HAL_DMA_Init(&hdma_spi2_tx) != HAL_OK)
@@ -206,7 +206,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     PB12     ------> SPI2_NSS
     PB15     ------> SPI2_MOSI
     */
-    HAL_GPIO_DeInit(GPIOB, LCD_SCK_Pin|LCD_CS_Pin|LCD_SDA_Pin);
+    HAL_GPIO_DeInit(GPIOB, LCD_SCK_Pin|GPIO_PIN_12|LCD_SDA_Pin);
 
     /* SPI2 DMA DeInit */
     HAL_DMA_DeInit(spiHandle->hdmatx);

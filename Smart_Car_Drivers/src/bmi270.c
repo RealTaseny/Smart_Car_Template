@@ -2,15 +2,18 @@
 #include "bmi270_config_headfile.h"
 #include <string.h>
 
-int16_t bmi270_gyro_x = 0, bmi270_gyro_y = 0, bmi270_gyro_z = 0;            // ÈıÖáÍÓÂİÒÇÊı¾İ      GYRO (ÍÓÂİÒÇ)
-int16_t bmi270_acc_x = 0, bmi270_acc_y = 0, bmi270_acc_z = 0;               // ÈıÖá¼ÓËÙ¶È¼ÆÊı¾İ     ACC  (accelerometer ¼ÓËÙ¶È¼Æ)
-float bmi270_transition_factor[2] = {4096, 16.4};                           // ×ª»»Êµ¼ÊÖµµÄ±ÈÀı
+int16_t bmi270_gyro_x = 0, bmi270_gyro_y = 0, bmi270_gyro_z = 0;            // ä¸‰è½´é™€èºä»ªæ•°æ®      GYRO (é™€èºä»ª)
+int16_t bmi270_acc_x = 0, bmi270_acc_y = 0, bmi270_acc_z = 0;               // ä¸‰è½´åŠ é€Ÿåº¦è®¡æ•°æ®     ACC  (accelerometer åŠ é€Ÿåº¦è®¡)
+float bmi270_transition_factor[2] = {4096, 16.4};                           // è½¬æ¢å®é™…å€¼çš„æ¯”ä¾‹
+
+volatile uint8_t spi1_tx_complete = 0;
+volatile uint8_t spi1_txrx_complete = 0;
 
 static void bmi270_write_register(uint8_t reg_addr, uint8_t data)
 {
 	uint8_t data_array[2] = {reg_addr | BMI270_SPI_W, data};
 	GYRO_CS(0);
-	HAL_SPI_Transmit(BMI270_SPI_Handle, data_array, 2, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(BMI270_SPI_Handle, data_array, 2, HAL_MAX_DELAY);
 	GYRO_CS(1);
 }
 
@@ -20,30 +23,34 @@ static void bmi270_write_registers(uint8_t reg_addr, const uint8_t *data, uint32
 	data_array[0] = reg_addr | BMI270_SPI_W;
 	memcpy(&data_array[1], data, length);
 	GYRO_CS(0);
-	HAL_SPI_Transmit(BMI270_SPI_Handle, data_array, length + 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(BMI270_SPI_Handle, data_array, length + 1, HAL_MAX_DELAY);
 	GYRO_CS(1);
 }
 
 static uint8_t bmi270_read_register(uint8_t reg_addr)
 {
-	uint8_t data = (reg_addr | BMI270_SPI_R);
+    uint8_t data = reg_addr | BMI270_SPI_R;
 	uint8_t recieved_data[2];
+
 	GYRO_CS(0);
-	HAL_SPI_Transmit(BMI270_SPI_Handle, &data, 1, HAL_MAX_DELAY);
-	HAL_SPI_Receive(BMI270_SPI_Handle, recieved_data, 2, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(BMI270_SPI_Handle, &data, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(BMI270_SPI_Handle, recieved_data, 2, HAL_MAX_DELAY);
 	GYRO_CS(1);
+
 	return recieved_data[1];
 }
 
 static void bmi270_read_registers(uint8_t reg_addr, uint8_t *pdata, uint32_t len)
 {
-	uint8_t data = (reg_addr | BMI270_SPI_R);
-	uint8_t raw_data[8];
-	GYRO_CS(0);
-	HAL_SPI_Transmit(BMI270_SPI_Handle, &data, 1, HAL_MAX_DELAY);
-	HAL_SPI_Receive(BMI270_SPI_Handle, raw_data, len + 1, HAL_MAX_DELAY);
-	GYRO_CS(1);
-	memcpy(pdata, raw_data + 1, len);
+    uint8_t data = (reg_addr | BMI270_SPI_R);
+    uint8_t raw_data[8];
+
+    GYRO_CS(0);
+    HAL_SPI_Transmit(BMI270_SPI_Handle, &data, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(BMI270_SPI_Handle, raw_data, len + 1, HAL_MAX_DELAY);
+    GYRO_CS(1);
+
+    memcpy(pdata, raw_data + 1, len);
 }
 
 static uint8_t bmi270_self_check (void)
@@ -64,36 +71,36 @@ static uint8_t bmi270_self_check (void)
 }
 
 //-------------------------------------------------------------------------------------------------------------------
-// º¯Êı¼ò½é     »ñÈ¡ BMI270 ¼ÓËÙ¶È¼ÆÊı¾İ
-// ²ÎÊıËµÃ÷     void
-// ·µ»Ø²ÎÊı     void
-// Ê¹ÓÃÊ¾Àı     bmi270_get_acc();                                             // Ö´ĞĞ¸Ãº¯Êıºó£¬Ö±½Ó²é¿´¶ÔÓ¦µÄ±äÁ¿¼´¿É
-// ±¸×¢ĞÅÏ¢     Ê¹ÓÃ SPI µÄ²É¼¯Ê±¼äÎª69us
-//            Ê¹ÓÃ IIC µÄ²É¼¯Ê±¼äÎª126us        ²É¼¯¼ÓËÙ¶È¼ÆµÄÊ±¼äÓë²É¼¯ÍÓÂİÒÇµÄÊ±¼äÒ»ÖÂµÄÔ­ÒòÊÇ¶¼Ö»ÊÇ¶ÁÈ¡¼Ä´æÆ÷Êı¾İ
+// å‡½æ•°ç®€ä»‹     è·å– BMI270 åŠ é€Ÿåº¦è®¡æ•°æ®
+// å‚æ•°è¯´æ˜     void
+// è¿”å›å‚æ•°     void
+// ä½¿ç”¨ç¤ºä¾‹     bmi270_get_acc();                                             // æ‰§è¡Œè¯¥å‡½æ•°åï¼Œç›´æ¥æŸ¥çœ‹å¯¹åº”çš„å˜é‡å³å¯
+// å¤‡æ³¨ä¿¡æ¯     ä½¿ç”¨ SPI çš„é‡‡é›†æ—¶é—´ä¸º69us
+//            ä½¿ç”¨ IIC çš„é‡‡é›†æ—¶é—´ä¸º126us        é‡‡é›†åŠ é€Ÿåº¦è®¡çš„æ—¶é—´ä¸é‡‡é›†é™€èºä»ªçš„æ—¶é—´ä¸€è‡´çš„åŸå› æ˜¯éƒ½åªæ˜¯è¯»å–å¯„å­˜å™¨æ•°æ®
 //-------------------------------------------------------------------------------------------------------------------
 void bmi270_get_acc (void)
 {
     uint8_t dat[6];
-		
+
     bmi270_read_registers(BMI270_ACC_ADDRESS, dat, 6);
     bmi270_acc_x = (int16_t)((uint16_t)dat[1]<<8 | dat[0]);
     bmi270_acc_y = (int16_t)((uint16_t)dat[3]<<8 | dat[2]);
     bmi270_acc_z = (int16_t)((uint16_t)dat[5]<<8 | dat[4]);
 }
 //-------------------------------------------------------------------------------------------------------------------
-// º¯Êı¼ò½é     »ñÈ¡ BMI270 ÍÓÂİÒÇÊı¾İ
-// ²ÎÊıËµÃ÷     void
-// ·µ»Ø²ÎÊı     void
-// Ê¹ÓÃÊ¾Àı     bmi270_get_gyro();                                            // Ö´ĞĞ¸Ãº¯Êıºó£¬Ö±½Ó²é¿´¶ÔÓ¦µÄ±äÁ¿¼´¿É
-// ±¸×¢ĞÅÏ¢     Ê¹ÓÃ SPI µÄ²É¼¯Ê±¼äÎª69us
-//            Ê¹ÓÃ IIC µÄ²É¼¯Ê±¼äÎª126us
+// å‡½æ•°ç®€ä»‹     è·å– BMI270 é™€èºä»ªæ•°æ®
+// å‚æ•°è¯´æ˜     void
+// è¿”å›å‚æ•°     void
+// ä½¿ç”¨ç¤ºä¾‹     bmi270_get_gyro();                                            // æ‰§è¡Œè¯¥å‡½æ•°åï¼Œç›´æ¥æŸ¥çœ‹å¯¹åº”çš„å˜é‡å³å¯
+// å¤‡æ³¨ä¿¡æ¯     ä½¿ç”¨ SPI çš„é‡‡é›†æ—¶é—´ä¸º69us
+//            ä½¿ç”¨ IIC çš„é‡‡é›†æ—¶é—´ä¸º126us
 //-------------------------------------------------------------------------------------------------------------------
 void bmi270_get_gyro (void)
 {
     uint8_t dat[6];
-		
+
     bmi270_read_registers(BMI270_GYRO_ADDRESS, dat, 6);
-		
+
     bmi270_gyro_x = (int16_t)((uint16_t)dat[1]<<8 | dat[0]);
     bmi270_gyro_y = (int16_t)((uint16_t)dat[3]<<8 | dat[2]);
     bmi270_gyro_z = (int16_t)((uint16_t)dat[5]<<8 | dat[4]);
@@ -114,48 +121,48 @@ void bmi270_get_data(void)
 }
 
 //-------------------------------------------------------------------------------------------------------------------
-// º¯Êı¼ò½é     ³õÊ¼»¯ BMI270
-// ²ÎÊıËµÃ÷     void
-// ·µ»Ø²ÎÊı     uint8_t           1-³õÊ¼»¯Ê§°Ü 0-³õÊ¼»¯³É¹¦
-// Ê¹ÓÃÊ¾Àı     bmi270_init();
-// ±¸×¢ĞÅÏ¢
+// å‡½æ•°ç®€ä»‹     åˆå§‹åŒ– BMI270
+// å‚æ•°è¯´æ˜     void
+// è¿”å›å‚æ•°     uint8_t           1-åˆå§‹åŒ–å¤±è´¥ 0-åˆå§‹åŒ–æˆåŠŸ
+// ä½¿ç”¨ç¤ºä¾‹     bmi270_init();
+// å¤‡æ³¨ä¿¡æ¯
 //-------------------------------------------------------------------------------------------------------------------
 uint8_t bmi270_init (void)
 {
     uint8_t return_state = 0;
-    HAL_Delay(20);                                                    // µÈ´ıÉè±¸ÉÏµç³É¹¦
+    HAL_Delay(20);                                                    // ç­‰å¾…è®¾å¤‡ä¸Šç”µæˆåŠŸ
     do{
-        if(bmi270_self_check())                                           // BMI270×Ô¼ì
+        if(bmi270_self_check())                                           // BMI270è‡ªæ£€
         {
             return_state = 1;
             break;
         }
-				bmi270_write_register(BMI270_PWR_CONF, 0x00);                       // ¹Ø±Õ¸ß¼¶Ê¡µçÄ£Ê½
+				bmi270_write_register(BMI270_PWR_CONF, 0x00);                       // å…³é—­é«˜çº§çœç”µæ¨¡å¼
 				HAL_Delay(1);
-				bmi270_write_register(BMI270_INIT_CTRL, 0x00);                      // ¿ªÊ¼¶ÔÄ£¿é½øĞĞ³õÊ¼»¯ÅäÖÃ
+				bmi270_write_register(BMI270_INIT_CTRL, 0x00);                      // å¼€å§‹å¯¹æ¨¡å—è¿›è¡Œåˆå§‹åŒ–é…ç½®
 				for (int i = 0; i < 256; i++)
-				{		
+				{
 					bmi270_write_register(BMI270_INIT_ADDR_0, 0x00);
 					bmi270_write_register(BMI270_INIT_ADDR_1, i);
 					bmi270_write_registers(BMI270_INIT_DATA, &bmi270_config_file[i * 32], 32);
 				}
-				bmi270_write_register(BMI270_INIT_CTRL, 0x01);                      // ³õÊ¼»¯ÅäÖÃ½áÊø
+				bmi270_write_register(BMI270_INIT_CTRL, 0x01);                      // åˆå§‹åŒ–é…ç½®ç»“æŸ
 				HAL_Delay(20);
-        if(1 != bmi270_read_register(BMI270_INT_STA))                       // ¼ì²éÊÇ·ñÅäÖÃÍê³É
+        if(1 != bmi270_read_register(BMI270_INT_STA))                       // æ£€æŸ¥æ˜¯å¦é…ç½®å®Œæˆ
         {
             return_state = 1;
             break;
         }
-        bmi270_write_register(BMI270_DATA_MAP, 0x04);                       // remapÖĞ¶ÏÏòÁ¿
-        bmi270_write_register(BMI270_PWR_CTRL, 0x0E);                       // ¿ªÆôĞÔÄÜÄ£Ê½  Ê¹ÄÜÍÓÂİÒÇ¡¢¼ÓËÙ¶È¡¢ÎÂ¶È´«¸ĞÆ÷
-        bmi270_write_register(BMI270_ACC_CONF, 0xE9);                       // ¼ÓËÙ¶È²É¼¯ÅäÖÃ ĞÔÄÜÄ£Ê½ Õı³£²É¼¯ 200Hz  ²ÉÑùÆµÂÊ
-        bmi270_write_register(BMI270_GYR_CONF, 0xE9);                       // ÍÓÂİÒÇ²É¼¯ÅäÖÃ ĞÔÄÜÄ£Ê½ Õı³£²É¼¯ 200Hz ²ÉÑùÆµÂÊ
+        bmi270_write_register(BMI270_DATA_MAP, 0x04);                       // remapä¸­æ–­å‘é‡
+        bmi270_write_register(BMI270_PWR_CTRL, 0x0E);                       // å¼€å¯æ€§èƒ½æ¨¡å¼  ä½¿èƒ½é™€èºä»ªã€åŠ é€Ÿåº¦ã€æ¸©åº¦ä¼ æ„Ÿå™¨
+        bmi270_write_register(BMI270_ACC_CONF, 0xE9);                       // åŠ é€Ÿåº¦é‡‡é›†é…ç½® æ€§èƒ½æ¨¡å¼ æ­£å¸¸é‡‡é›† 200Hz  é‡‡æ ·é¢‘ç‡
+        bmi270_write_register(BMI270_GYR_CONF, 0xE9);                       // é™€èºä»ªé‡‡é›†é…ç½® æ€§èƒ½æ¨¡å¼ æ­£å¸¸é‡‡é›† 200Hz é‡‡æ ·é¢‘ç‡
 
-        // BMI270_ACC_SAMPLE¼Ä´æÆ÷          ÒÔÏÂÎª25¡æµÄ×ª»»±ÈÀı BMI270µÄ¼ÓËÙ¶ÈÎÂÆ¯ÏµÊıÎª 0.004%/K  ³£ÖµÁãÆ«µÄÎÂ¶ÈÃô¸ĞÏµÊıÎª ¡À0.25mg/K
-        // ÉèÖÃÎª:0x00 ¼ÓËÙ¶È¼ÆÁ¿³ÌÎª:¡À2g          »ñÈ¡µ½µÄ¼ÓËÙ¶È¼ÆÊı¾İ ³ıÒÔ16384      ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»£ºg(m/s^2)
-        // ÉèÖÃÎª:0x01 ¼ÓËÙ¶È¼ÆÁ¿³ÌÎª:¡À4g          »ñÈ¡µ½µÄ¼ÓËÙ¶È¼ÆÊı¾İ ³ıÒÔ8192       ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»£ºg(m/s^2)
-        // ÉèÖÃÎª:0x02 ¼ÓËÙ¶È¼ÆÁ¿³ÌÎª:¡À8g          »ñÈ¡µ½µÄ¼ÓËÙ¶È¼ÆÊı¾İ ³ıÒÔ4096       ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»£ºg(m/s^2)
-        // ÉèÖÃÎª:0x03 ¼ÓËÙ¶È¼ÆÁ¿³ÌÎª:¡À16g         »ñÈ¡µ½µÄ¼ÓËÙ¶È¼ÆÊı¾İ ³ıÒÔ2048       ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»£ºg(m/s^2)
+        // BMI270_ACC_SAMPLEå¯„å­˜å™¨          ä»¥ä¸‹ä¸º25â„ƒçš„è½¬æ¢æ¯”ä¾‹ BMI270çš„åŠ é€Ÿåº¦æ¸©æ¼‚ç³»æ•°ä¸º 0.004%/K  å¸¸å€¼é›¶åçš„æ¸©åº¦æ•æ„Ÿç³»æ•°ä¸º Â±0.25mg/K
+        // è®¾ç½®ä¸º:0x00 åŠ é€Ÿåº¦è®¡é‡ç¨‹ä¸º:Â±2g          è·å–åˆ°çš„åŠ é€Ÿåº¦è®¡æ•°æ® é™¤ä»¥16384      å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ï¼šg(m/s^2)
+        // è®¾ç½®ä¸º:0x01 åŠ é€Ÿåº¦è®¡é‡ç¨‹ä¸º:Â±4g          è·å–åˆ°çš„åŠ é€Ÿåº¦è®¡æ•°æ® é™¤ä»¥8192       å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ï¼šg(m/s^2)
+        // è®¾ç½®ä¸º:0x02 åŠ é€Ÿåº¦è®¡é‡ç¨‹ä¸º:Â±8g          è·å–åˆ°çš„åŠ é€Ÿåº¦è®¡æ•°æ® é™¤ä»¥4096       å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ï¼šg(m/s^2)
+        // è®¾ç½®ä¸º:0x03 åŠ é€Ÿåº¦è®¡é‡ç¨‹ä¸º:Â±16g         è·å–åˆ°çš„åŠ é€Ÿåº¦è®¡æ•°æ® é™¤ä»¥2048       å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ï¼šg(m/s^2)
         switch(BMI270_ACC_SAMPLE_DEFAULT)
         {
             case BMI270_ACC_SAMPLE_SGN_2G:
@@ -188,12 +195,12 @@ uint8_t bmi270_init (void)
             break;
         }
 
-        // BMI270_GYR_SAMPLE¼Ä´æÆ÷         ÒÔÏÂÎª25¡æµÄ×ª»»±ÈÀı BMI270µÄÍÓÂİÒÇÎÂÆ¯ÏµÊıÎª 0.02%/K  ³£ÖµÁãÆ«µÄÎÂ¶ÈÃô¸ĞÏµÊıÎª ¡À0.015dps/K
-        // ÉèÖÃÎª:0x00 ÍÓÂİÒÇÁ¿³ÌÎª:¡À2000dps      »ñÈ¡µ½µÄÍÓÂİÒÇÊı¾İ³ıÒÔ16.384          ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»Îª£º¡ã/s
-        // ÉèÖÃÎª:0x01 ÍÓÂİÒÇÁ¿³ÌÎª:¡À1000dps      »ñÈ¡µ½µÄÍÓÂİÒÇÊı¾İ³ıÒÔ32.768          ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»Îª£º¡ã/s
-        // ÉèÖÃÎª:0x02 ÍÓÂİÒÇÁ¿³ÌÎª:¡À500 dps      »ñÈ¡µ½µÄÍÓÂİÒÇÊı¾İ³ıÒÔ65.536          ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»Îª£º¡ã/s
-        // ÉèÖÃÎª:0x03 ÍÓÂİÒÇÁ¿³ÌÎª:¡À250 dps      »ñÈ¡µ½µÄÍÓÂİÒÇÊı¾İ³ıÒÔ131.072         ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»Îª£º¡ã/s
-        // ÉèÖÃÎª:0x04 ÍÓÂİÒÇÁ¿³ÌÎª:¡À250 dps      »ñÈ¡µ½µÄÍÓÂİÒÇÊı¾İ³ıÒÔ262.144         ¿ÉÒÔ×ª»¯Îª´øÎïÀíµ¥Î»µÄÊı¾İ£¬µ¥Î»Îª£º¡ã/s
+        // BMI270_GYR_SAMPLEå¯„å­˜å™¨         ä»¥ä¸‹ä¸º25â„ƒçš„è½¬æ¢æ¯”ä¾‹ BMI270çš„é™€èºä»ªæ¸©æ¼‚ç³»æ•°ä¸º 0.02%/K  å¸¸å€¼é›¶åçš„æ¸©åº¦æ•æ„Ÿç³»æ•°ä¸º Â±0.015dps/K
+        // è®¾ç½®ä¸º:0x00 é™€èºä»ªé‡ç¨‹ä¸º:Â±2000dps      è·å–åˆ°çš„é™€èºä»ªæ•°æ®é™¤ä»¥16.384          å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ä¸ºï¼šÂ°/s
+        // è®¾ç½®ä¸º:0x01 é™€èºä»ªé‡ç¨‹ä¸º:Â±1000dps      è·å–åˆ°çš„é™€èºä»ªæ•°æ®é™¤ä»¥32.768          å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ä¸ºï¼šÂ°/s
+        // è®¾ç½®ä¸º:0x02 é™€èºä»ªé‡ç¨‹ä¸º:Â±500 dps      è·å–åˆ°çš„é™€èºä»ªæ•°æ®é™¤ä»¥65.536          å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ä¸ºï¼šÂ°/s
+        // è®¾ç½®ä¸º:0x03 é™€èºä»ªé‡ç¨‹ä¸º:Â±250 dps      è·å–åˆ°çš„é™€èºä»ªæ•°æ®é™¤ä»¥131.072         å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ä¸ºï¼šÂ°/s
+        // è®¾ç½®ä¸º:0x04 é™€èºä»ªé‡ç¨‹ä¸º:Â±250 dps      è·å–åˆ°çš„é™€èºä»ªæ•°æ®é™¤ä»¥262.144         å¯ä»¥è½¬åŒ–ä¸ºå¸¦ç‰©ç†å•ä½çš„æ•°æ®ï¼Œå•ä½ä¸ºï¼šÂ°/s
         switch(BMI270_GYRO_SAMPLE_DEFAULT)
         {
             case BMI270_GYRO_SAMPLE_SGN_125DPS:

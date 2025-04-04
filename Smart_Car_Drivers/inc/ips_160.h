@@ -6,7 +6,6 @@
 #include "gpio.h"
 #include "zf_common_function.h"
 #include "font.h"
-#include "fatfs.h"
 
 #define IPS160_SPI_PORT (&hspi2)
 
@@ -19,7 +18,7 @@
 #define IPS160_DC(x)                    	((x) ? (HAL_GPIO_WritePin(IPS160_DC_PORT, IPS160_DC_PIN, GPIO_PIN_SET))	:	(HAL_GPIO_WritePin(IPS160_DC_PORT, IPS160_DC_PIN, GPIO_PIN_RESET)))
 
 #define X_OFFSET 26
-#define Y_OFFSET 1
+#define Y_OFFSET 0
 
 typedef enum
 {

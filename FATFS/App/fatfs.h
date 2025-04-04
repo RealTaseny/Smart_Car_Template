@@ -36,7 +36,7 @@ extern char USERPath[4]; /* USER logical drive path */
 extern FATFS USERFatFS; /* File system object for USER logical drive */
 extern FIL USERFile; /* File object for USER */
 
-void MX_FATFS_Init(void);
+void fatfs_init(void);
 
 /* USER CODE BEGIN Prototypes */
 

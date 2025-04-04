@@ -26,6 +26,8 @@ FATFS USERFatFS;    /* File system object for USER logical drive */
 FIL USERFile;       /* File object for USER */
 
 /* USER CODE BEGIN Variables */
+BYTE work[_MAX_SS];
+
 FRESULT scan_files (char* path)
 {
   FRESULT res;
@@ -71,7 +73,7 @@ FRESULT scan_files (char* path)
 }
 /* USER CODE END Variables */
 
-void MX_FATFS_Init(void)
+void fatfs_init(void)
 {
   /*## FatFS: Link the USER driver ###########################*/
   retUSER = FATFS_LinkDriver(&USER_Driver, USERPath, 0);
@@ -79,15 +81,15 @@ void MX_FATFS_Init(void)
 
   /* USER CODE BEGIN Init */
   retUSER = f_mount(&USERFatFS,  "FLASH:",  1);   //挂载文件系统
-  while (retUSER == FR_NO_FILESYSTEM)
+  if (retUSER == FR_NO_FILESYSTEM)
   {
-    printf("没有文件系统，正在格式化挂载设备SPI Flash...\r\n");
+    printf("FR_NO_Filesystem Error, make filesystem...\r\n");
     retUSER = f_mkfs("FLASH:", FM_FAT, _MAX_SS, work, sizeof(work));
-    printf("操作完成，返回码：%d\r\n", retUSER);
-    printf("创建成功，正在尝试挂载设备SPI Flash\r\n");
+    if (retUSER == FR_OK) printf("Make filesystem done, trying to remount SPI Flash...\r\n");
+    else printf("Make filesystem error, return code:%d, \r\n", retUSER);
     retUSER = f_mount(&USERFatFS, "FLASH:", 1);
-    printf("操作完成，返回码：%d\r\n", retUSER);
-    break;
+    if (retUSER == FR_OK) printf("Successfully mount filesystem\r\n");
+    else printf("Mount filesystem error, return code:%d, \r\n", retUSER);
   }
   //scan_files("FLASH:");
   /* USER CODE END Init */

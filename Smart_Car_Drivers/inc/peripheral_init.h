@@ -5,6 +5,6 @@
 #ifndef PERIPHERAL_INIT_H
 #define PERIPHERAL_INIT_H
 
-void Peripheral_Init(void);
+void peripheral_init(void);
 
 #endif //PERIPHERAL_INIT_H

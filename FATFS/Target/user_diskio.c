@@ -39,7 +39,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #include "w25qxx_flash.h"
-#include <stdio.h>
+
 #define SD_CARD 0
 #define SPI_FLASH 1
 
@@ -48,9 +48,11 @@
  */
 #define W25Q128_SECTOR_COUNT 4096
 #define W25Q128_SECTOR_SIZE 4096
-#define W25Q128_BLOCK_SIZE 256
+#define W25Q128_BLOCK_SIZE 1
+
 /* Private variables ---------------------------------------------------------*/
 /* Disk status */
+
 static volatile DSTATUS Stat = STA_NOINIT;
 
 /* USER CODE END DECL */
@@ -228,15 +230,15 @@ DRESULT USER_ioctl (
     switch (cmd)
     {
   case GET_SECTOR_COUNT:
-    *(DWORD *)buff = w25qxx_flash_read_capacity();
+    *(DWORD *)buff = W25Q128_SECTOR_COUNT;
       break;
 
   case GET_SECTOR_SIZE:
-    *(WORD *)buff = 4096;
+    *(WORD *)buff = W25Q128_SECTOR_SIZE;
       break;
 
   case GET_BLOCK_SIZE:
-    *(WORD *)buff = 1;
+    *(WORD *)buff = W25Q128_BLOCK_SIZE;
       break;
     }
 

@@ -3,19 +3,27 @@
 static uint16_t									ips160_pencolor     = IPS160_DEFAULT_PENCOLOR;
 static uint16_t									ips160_bgcolor      = IPS160_DEFAULT_BGCOLOR;
 static ips160_dir_enum							ips160_display_dir  = IPS160_DEFAULT_DISPLAY_DIR;
-static uint16_t									ips160_x_max        = 132;
-static uint16_t									ips160_y_max        = 162;
+static uint16_t									ips160_x_max        = 162;
+static uint16_t									ips160_y_max        = 132;
+
+volatile uint8_t spi2_tx_complete = 0;
 
 static void ips160_write_command (const uint8_t command)
 {
 	uint8_t data[1] = {command};
+	IPS160_DC(0);
 	HAL_SPI_Transmit_DMA(IPS160_SPI_PORT, data, sizeof(data));
+	//while (!spi2_tx_complete);
+	//spi2_tx_complete = 0;
+	IPS160_DC(1);
 }
 
 static void ips160_write_8bit_data (const uint8_t dat)
 {
 	uint8_t data[1] = {dat};
 	HAL_SPI_Transmit_DMA(IPS160_SPI_PORT, data, sizeof(data));
+	//while (!spi2_tx_complete);
+	//spi2_tx_complete = 0;
 }
 
 void ips160_write_16bit_data(const uint16_t dat) {
@@ -23,6 +31,8 @@ void ips160_write_16bit_data(const uint16_t dat) {
     data[0] = (dat >> 8) & 0xFF;
     data[1] = dat & 0xFF;
     HAL_SPI_Transmit_DMA(IPS160_SPI_PORT, data, sizeof(data));
+	//while (!spi2_tx_complete);
+	//spi2_tx_complete = 0;
 }
 
 static void ips160_set_region (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
@@ -80,8 +90,10 @@ void ips160_clear(void) {
     }
 
 
-    for (uint16_t j = 0; j < ips160_y_max; j++) {
-        HAL_SPI_Transmit(IPS160_SPI_PORT, data, sizeof(data), HAL_MAX_DELAY);
+    for (uint16_t j = 0; j < ips160_x_max; j++) {
+        HAL_SPI_Transmit_DMA(IPS160_SPI_PORT, data, sizeof(data));
+    	while (!spi2_tx_complete);
+    	spi2_tx_complete = 0;
     }
 }
 
@@ -457,3 +469,4 @@ void ips160_init(void)
 	ips160_write_command(0x29);     //Display on
 	ips160_clear();
 }
+

@@ -4,8 +4,6 @@
 
 #include "ymodem.h"
 
-extern FIL file;
-
 uint8_t packet_start = 0;
 uint8_t packet_revieved = 0;
 uint8_t ymodem_packet_state = YMODEM_INVALID;
@@ -93,12 +91,13 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
     {
        if (receive_packet(WAIT_MSENCOND) != 0)
        {
+           send_byte(CRC16);
            if (++retries > MAX_ERRORS)
            {
                send_byte(CAN);
                if (file_open_flag)
                {
-                   f_close(&file);
+                   f_close(&USERFile);
                    f_unlink(file_path);
                }
                return YMODEM_TIMEOUT;
@@ -114,7 +113,8 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
            {
                if (ymodem_receive_packet[1] == 0x00 && ymodem_receive_packet[2] == 0xFF && 0x0000 == (ymodem_receive_packet[packet_size + 3] << 8 | ymodem_receive_packet[packet_size + 4]))
                {
-                   f_close(&file);
+                   f_close(&USERFile);
+                   send_byte(ACK);
                    return YMODEM_OK;
                }
            }
@@ -129,7 +129,7 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
                    send_byte(CAN);
                    if (file_open_flag)
                    {
-                       f_close(&file);
+                       f_close(&USERFile);
                        f_unlink(file_path);
                    }
                    return YMODEM_ERROR;
@@ -152,7 +152,7 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
                    send_byte(CAN);
                    if (file_open_flag)
                    {
-                       f_close(&file);
+                       f_close(&USERFile);
                        f_unlink(file_path);
                    }
                    return YMODEM_ERROR;
@@ -204,11 +204,11 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
 
                 sprintf(file_path,"%s%s","1:",file_info->file_name);
 
-                if (f_open(&file, file_path, FA_CREATE_ALWAYS | FA_WRITE)!= FR_OK) {
+                if (f_open(&USERFile, file_path, FA_CREATE_ALWAYS | FA_WRITE)!= FR_OK) {
                     send_byte(CAN);
                     return YMODEM_ERROR;
                 }
-                f_lseek(&file, 0);
+                f_lseek(&USERFile, 0);
                 file_open_flag = 1;
                 continue;
             }
@@ -219,7 +219,7 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
                 send_byte(ACK);
                 if (file_info->file_size - bytes_written_total >= packet_size)
                 {
-                    if (f_write(&file, &ymodem_receive_packet[3], packet_size, &bytes_written)!= FR_OK) {
+                    if (f_write(&USERFile, &ymodem_receive_packet[3], packet_size, &bytes_written)!= FR_OK) {
                         send_byte(CAN);
                         return YMODEM_ERROR;
                     }
@@ -227,7 +227,7 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
 
                 else
                 {
-                    if (f_write(&file, &ymodem_receive_packet[3], (file_info->file_size - bytes_written_total), &bytes_written)!= FR_OK)
+                    if (f_write(&USERFile, &ymodem_receive_packet[3], (file_info->file_size - bytes_written_total), &bytes_written)!= FR_OK)
                     {
                         send_byte(CAN);
                         return YMODEM_ERROR;
@@ -236,7 +236,7 @@ YmodemStatus ymodem_receive(YmodemFileInfo *file_info)
                 bytes_written_total += bytes_written;
                 if (bytes_written_total % 4096 == 0)
                 { // 例如每接收10个数据包时
-                    f_sync(&file);
+                    f_sync(&USERFile);
                 }
             }
         }
