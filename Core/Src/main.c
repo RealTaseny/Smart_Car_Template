@@ -93,19 +93,11 @@ int main(void)
 
   /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_ADC1_Init();
-  MX_SPI1_Init();
-  MX_SPI2_Init();
-  MX_TIM1_Init();
-  MX_TIM2_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
-  MX_TIM5_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
+#if ENABLE_YMODEM == 1
+  // 定义文件信息结构体并初始化
+  YmodemFileInfo file_info = {0};
+  YmodemStatus status = ymodem_receive(&file_info);
+#endif
 
   /* USER CODE BEGIN 2 */
   Peripheral_Init();
